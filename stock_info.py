@@ -40,18 +40,40 @@ def stock_read(stock_symbol, dirPath):
     return stock_data
 
 
-dirPath = r"/home/db/stock_resource_center/resource/twse/json"   #股票資料位置
-'''
-此為需要抓取多筆資料可用
-stock_symbol = data.keys()
-stock_symbol = list(stock_symbol)
-stock_symbol.remove('id')
+dirPath = r"/home/mlb/res/stock/twse/json/"   #股票資料位置
+
+#此為需要抓取多筆資料可用
+data = data_read(dirPath)
+print(data[-1])
+data_locate = os.path.join(dirPath, data[-1])   #檔案名稱
+with open(data_locate, 'r') as f:    #讀取檔案內容
+    data = json.load(f)
+print(data['0050'])
+stock = []
+for test in data:
+    #print(data[test])
+    #print(test)
+    #print(data[test]['close'])
+    if(test!='id' and data[test]['close']!='NULL'):
+        #print(float(data[test]['volume'])/float(data[test]['close']))
+        if(float(data[test]['volume'])/float(data[test]['high'])/1000 > 1000 and len(test)==4):
+            stock.append(test)
+print(len(stock))
+#exit()
+#stock = data.keys()
+#stock = list(stock)
+#stock.remove('id')
+#print(stock_symbol)
 '''
 if len(sys.argv) < 2:
     stock_symbol = input('輸入股票號碼:')
 else:
     stock_symbol = sys.argv[1]
-stock_data = stock_read(stock_symbol, dirPath)
-file_name = "./StockData/stock"+stock_symbol+".csv"
-stock_data.to_csv(file_name, index=False) #存入csv
-stock_data.drop(stock_data.index, inplace=True)
+'''
+for stock_symbol in stock: 
+    #print(stock_symbol)
+    stock_data = stock_read(stock_symbol, dirPath)
+    file_name = "./StockData/stock"+stock_symbol+".csv"
+    stock_data.to_csv(file_name, index=False) #存入csv
+    stock_data.drop(stock_data.index, inplace=True)
+
