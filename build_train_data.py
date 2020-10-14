@@ -61,27 +61,6 @@ def save_np(x, y, num, span):
     np.save(os.path.join('./stock_data/tey/', 'test_y_' + stock_name), Npdata)
     print(" testY: ", Npdata.shape)
     #print(Npdata)
-    '''
-    Npdata = np.array(train_y_mon)
-    np.save(os.path.join('./StockData/TrainingData/', 'trainingY_mon_' + stock_name), Npdata)
-    print( " trainY_mon: ", Npdata.shape)
-    #print(Npdata)
-
-    Npdata = np.array(y_test_mon)
-    np.save(os.path.join('./StockData/TrainingData/', 'testingY_mon_' + stock_name), Npdata)
-    print(" testY_mon: ", Npdata.shape)
-    #print(Npdata)
-
-    Npdata = np.array(train_y_fri)
-    np.save(os.path.join('./StockData/TrainingData/', 'trainingY_fri_' + stock_name), Npdata)
-    print( " trainY_fri: ", Npdata.shape)
-    #print(Npdata)
-
-    Npdata = np.array(y_test_fri)
-    np.save(os.path.join('./StockData/TrainingData/', 'testingY_fri_' + stock_name), Npdata)
-    print(" testY_fri: ", Npdata.shape)
-    #print(Npdata)
-    '''
     '''Npdata = np.array(open_money)
     np.save(os.path.join('./StockData/TrainingData/', 'opentestingX_' + stock_name), Npdata)
     #print(num, " opentestX  ", Npdata.shape)
@@ -104,65 +83,6 @@ def generate_train_in_day(feature, data, name, span):
             train_y.append(Open-Close)#the next day's diff
 
     save_np(train_x, train_y, name, span)
-def generate_train(feature, data, name, span):
-    span = 3
-    gen_x = []
-    gen_y = []
-    train_x = []
-    train_y = []
-    train_y_mon = []
-    train_y_fri = []
-    open_money = []
-    '''for(_, span_data) in data:
-        if len(span_data)== 5:
-            tmp_data = span_data
-            break
-    k = 0
-    for(_, span_data) in data:
-        if len(span_data)== 5:
-            if(k==0):
-                k=k+1
-                continue
-            tmp_data2 = span_data
-            break
-    k = 0
-    for _, span_data in data:'''
-        #預測未滿5天
-    '''if len(span_data) == 5: #Decide the way seperate the stock data
-            if(k == 0 or k == 1):
-                k = k+1
-                continue
-<<<<<<< Updated upstream
-=======
-            new_span_data = pd.concat([tmp_data,span_data])
-            threeweek_span_data = pd.concat([pd.concat([tmp_data,tmp_data2]),span_data])
-            train_x.append(span_data.loc[:].values.tolist())
-            #train_x.append(threeweek_span_data.loc[:].values.tolist()) #append all feature list
-            mon_open = span_data['open'][0]
-            fri_close = span_data['close'][4]
-            open_money.append(mon_open)
-            train_y.append(fri_close - mon_open)
-            #tmp_data = span_data
-            tmp_data = tmp_data2
-            tmp_data2 = span_data
->>>>>>> Stashed changes
-            train_y_fri.append(fri_close)
-            train_y_mon.append(mon_open)
-    train_x.pop()#drop last
-    train_y.pop(0)#drop first
-=======
-            train_x.append(gen_x[i].values.tolist()) #gen_x[i].to_numpy() / series and df all ok
-            mon_open = gen_y[i]['open'][0]
-            last_close = gen_y[i]['close'].iloc[-1] #iloc for row / i for index
-            open_money.append(mon_open)
-            train_y.append(last_close - mon_open)
-            train_y_fri.append(last_close)
-            train_y_mon.append(mon_open)
-        '''
-        #gen_x is for training, gen_y is for testing
-    '''gen_x.append(span_data)
-        gen_y.append(span_data)'''
-    save_np(train_x, train_y, open_money, name, train_y_mon, train_y_fri)
 
 def filter_feature(df, feature):
     df = df[df.columns[df.columns.isin(feature)]] #篩選出需要的feature
