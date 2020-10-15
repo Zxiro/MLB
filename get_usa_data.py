@@ -3,11 +3,12 @@ import datetime as dt
 import pandas as pd
 import yfinance as yf
 from pandas_datareader import data as web
-from daetime import date, timedelta
+from build_config import index_dic
+from datetime import date, timedelta
 def get_usa_index():
     yf.pdr_override()
-    usa_dict = 'sp'
-    features = ['Close', 'Open', 'High', 'Low', 'Volume']
+    usa_dict = index_dic['index']
+    features = index_dic['features']
     start = date.today()-timedelta(days=2)
     end = date.today()
     index_list = []

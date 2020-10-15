@@ -1,27 +1,30 @@
 import os
 import csv
+import time
 import pandas as pd
 import numpy as np
 import requests as req
 from io import StringIO
 from datetime import date, timedelta
-def get_chip_csv(stock_id):
-    for i in range(3):
-        day = (date.today()-timedelta(days = i)).strftime("%Y%m%d")
+def get_chip_csv(stock_id, span):
+    chip = pd.DataFrame()
+    i = 1
+    while i < span:
+        day = (date.today()-timedelta(days = i+1)).strftime("%Y%m%d")
         print(day)
         tse_csv = req.get('https://www.twse.com.tw/fund/T86?response=csv&date='+day+'&selectType=ALLBUT0999')
         try:
             df = pd.read_csv(StringIO(tse_csv.text), header = 1, encoding = 'utf-8').dropna(how='all', axis=1).dropna(how='any')
         except Exception:
-            i+=1
+            i-=1
             print("e")
             continue
         except IndexError:
-            i+=1
+            i-=1
             print("i")
             continue
         except ValueError:
-            i+=1
+            i-=1
             print("v")
             continue
         df['tmp'] = df.iloc[:, 0:1]
@@ -33,4 +36,8 @@ def get_chip_csv(stock_id):
         df.drop(df.columns[ :-5],inplace = True, axis = 1)
         mask = (df['stock_id'] == stock_id)
         print(df[mask])
+        chip = pd.concat([chip, df[mask]])
+        i += 1
         time.sleep(2)
+    print(chip)
+    return chip
