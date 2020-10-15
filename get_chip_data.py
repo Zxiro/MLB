@@ -35,8 +35,9 @@ def get_chip_csv(stock_id, span):
         df['total_inv_overview'] = df.iloc[:, 18:19]
         df.drop(df.columns[ :-5],inplace = True, axis = 1)
         mask = (df['stock_id'] == stock_id)
-        print(df[mask])
-        chip = pd.concat([chip, df[mask]])
+        #print(df[mask])
+        chip = pd.concat([chip, df[mask]], sort = True)
+        chip.drop(['stock_id'], inplace = True, axis = 1)
         i += 1
         time.sleep(2)
     print(chip)

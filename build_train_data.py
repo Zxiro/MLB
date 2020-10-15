@@ -27,7 +27,6 @@ def save_np(x, y, num, span):
     scale = preprocessing.StandardScaler()
     train_x, x_test = seperate_tr_te(x)
     train_y, y_test = seperate_tr_te(y)
-    # open_money = open_money[-50:]
     stock_name = num
 
     scale = scale.fit(resha(train_x))  #  標準化後的標準scale, resha(x) = two dim /  (tr + te)
@@ -90,8 +89,11 @@ def filter_feature(df, feature):
     return df
 
 def load_csv(num, start, end):
-    stock_data = pd.DataFrame(pd.read_csv('./stock_data/stock'+num+'.csv'))
+    stock_data = pd.DataFrame(pd.read_csv('./stock_data/stock/stock'+num+'.csv'))
     stock_data['date'] = pd.to_datetime(stock_data['date'])
+    start_date = pd.to_datetime(start)
+    end_date = pd.to_datetime(end)
+    count = 0
     for i in stock_data["date"]:
         if( start_date > i or end_date < i):
             stock_data.drop([count], axis = 0, inplace = True)
@@ -112,10 +114,8 @@ if '__main__' == __name__:
     af = Add_feature(stock_data) #calculate the wanted feature and add on the stock dataframe
     af.data = filter_feature(af.data, feature) #leave the wanted feature
     df = pd.concat([af.data, usa], axis=1).reindex(af.data.index) #concat the USA index on the data
-    df = pd.concat([df, chip_data], axis=1).reindex(df.index) #concat the chip on the data
+    #df = pd.concat([df, chip_data], axis=1).reindex(df.index) #concat the chip on the data
     df = df.dropna()
     print(df)
-    print('------------------------')
     df.to_csv('./csv_data/train.csv')
-    #df = df.set_index('date').resample('w')
     generate_train_in_day(feature, df, stock_num, span)
