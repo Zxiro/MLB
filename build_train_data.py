@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from statistics import mean
 from sklearn import preprocessing
+<<<<<<< Updated upstream
 from add_feature import Add_feature
 from get_usa_data import get_usa_index
 from get_chip_data import get_chip_csv
@@ -66,6 +67,7 @@ def save_np(x, y, num, span):
     #print(num, " opentestX  ", Npdata.shape)
     #print(Npdata)'''
 def generate_train_in_day(feature, data, name, span):
+    span = 5
     gen_x = []
     gen_y = []
     train_x = []
@@ -113,6 +115,11 @@ if '__main__' == __name__:
     chip_data = get_chip_csv("0050", 3) #get "0050"'s chip data in past three days
     af = Add_feature(stock_data) #calculate the wanted feature and add on the stock dataframe
     af.data = filter_feature(af.data, feature) #leave the wanted feature
+
+    #usa = get_usa_index() #get usa index data
+    stock_data, chip_data = load_csv(stock_num, start_date, end_date) #load selected stock's data which is in the set timespan
+    #af = Add_feature(stock_data) #calculate the wanted feature and add on the stock dataframe
+    #af.data = filter_feature(af.data, feature) #leave the wanted feature
     df = pd.concat([af.data, usa], axis=1).reindex(af.data.index) #concat the USA index on the data
     #df = pd.concat([df, chip_data], axis=1).reindex(df.index) #concat the chip on the data
     df = df.dropna()
