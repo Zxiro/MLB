@@ -62,12 +62,13 @@ def save_np(x, y, num, span, open_price, close_price):
     #print(num, " closetestx  ", npdata.shape)
     #print(npdata)
 
-def generate_train_in_day(feature, data, name, span):
+def generate_train_in_day(stock):
     train_x = []
     train_y = []
     open_price = []
     close_price = []
-    data.drop(['date'], axis = 1, inplace = True)
+    #data.drop(['date'], axis = 1, inplace = True)
+    '''
     for i in range(len(data)):#everyday
         if i < len(data) and ((i + span) < len(data)):
             train_x.append([data.iloc[i+j].values.tolist() for j in range(span)])
@@ -81,7 +82,16 @@ def generate_train_in_day(feature, data, name, span):
             else:
                 train_y.append(0)
             #train_y.append(Close-Open)#the next day's diff
-    save_np(train_x, train_y, name, span, open_price, close_price)
+    '''
+    ordinary = (pd.to_numeric(stock['pe_com'])-pd.to_numeric(stock['pe_i']))/pd.to_numeric(stock['pe_i'])  #原本離區間的距離
+    one_month = (pd.to_numeric(stock['pe_com'].shift(-30))- pd.to_numeric(stock['pe_i'].shift(-30)))/pd.to_numeric(stock['pe_i'].shift(-30))
+    print(ordinary)
+    print(one_month)
+    print(stock['pe_com'])
+    print(stock['pe_i'])
+    y = np.where(abs(ordinary)<=0.05,0,np.where(abs(one_month)<=0.05,1,-1)) #原本就在區間內設為0 在區間外如果在一個月後回到區間為1 否則為0
+    print(y)
+    #save_np(train_x, train_y, name, span, open_price, close_price)
 
 def filter_feature(df, feature):
     df = df[df.columns[df.columns.isin(feature)]] #篩選出需要的feature
@@ -153,6 +163,7 @@ def concat_pe(df):
     #print(df[2489:])
     df = df[~(df == 0.0).any(axis=1)]
     print(df)
+    return df
     #print(dict_)
 
 if '__main__' == __name__:
@@ -175,4 +186,5 @@ if '__main__' == __name__:
     df = pd.DataFrame(stock_data)
     df = df.dropna()
     concat_indust_pe(df, indust_pe[0])
-    concat_pe(df)
+    df = concat_pe(df)
+    generate_train_in_day(df)
