@@ -1,12 +1,14 @@
-import datetime
-from datetime import timedelta
-import json
-import numpy as np
-import os
-import pandas as pd
-from pandas.io.json import json_normalize
 import sys
 import time
+import datetime
+import json
+import os
+import numpy as np
+import pandas as pd
+from datetime import timedelta
+from pandas.io.json import json_normalize
+from build_config import index_dic
+
 def data_read(dirPath):  #找出資料夾的所有檔案並且回傳檔案列表
     result = [f for f in sorted(os.listdir(dirPath)) if os.path.isfile(os.path.join(dirPath, f))]
     return result
@@ -30,50 +32,28 @@ def stock_read(stock_symbol, dirPath):
         column.insert(0, "date")     #插入時間column
         data = data.reindex(columns = column)
         data["date"] = i.split('.')[0] #檔案名字最前面為時間
-        print(data)
+        #print(data)
         if first == 0: #第一支股票要先建立新的data資訊
             stock_data = data
             first = first + 1
         else:
             stock_data = pd.concat([stock_data,data],axis=0)
-        print(stock_data)
+        print(i)
     return stock_data
 
 
-dirPath = r"/home/mlb/res/stock/twse/json/"   #股票資料位置
+dirPath = r"/home/db/stock_resource_center/resource/twse/json"   #股票資料位置
+'''
+此為需要抓取多筆資料可用
+stock_symbol = data.keys()
+stock_symbol = list(stock_symbol)
+stock_symbol.remove('id')
+'''
 
-#此為需要抓取多筆資料可用
-data = data_read(dirPath)
-print(data[-1])
-data_locate = os.path.join(dirPath, data[-1])   #檔案名稱
-with open(data_locate, 'r') as f:    #讀取檔案內容
-    data = json.load(f)
-print(data['0050'])
-stock = []
-for test in data:
-    #print(data[test])
-    #print(test)
-    #print(data[test]['close'])
-    if(test!='id' and data[test]['close']!='NULL'):
-        #print(float(data[test]['volume'])/float(data[test]['close']))
-        if(float(data[test]['volume'])/float(data[test]['high'])/1000 > 1000 and len(test)==4):
-            stock.append(test)
-print(len(stock))
-#exit()
-#stock = data.keys()
-#stock = list(stock)
-#stock.remove('id')
-#print(stock_symbol)
-'''
-if len(sys.argv) < 2:
-    stock_symbol = input('輸入股票號碼:')
-else:
-    stock_symbol = sys.argv[1]
-'''
-for stock_symbol in stock: 
-    #print(stock_symbol)
+stock_group = index_dic['stock_group']
+
+for stock_symbol in stock_group:
     stock_data = stock_read(stock_symbol, dirPath)
     file_name = "./stock_data/stock/stock"+stock_symbol+".csv"
     stock_data.to_csv(file_name, index=False) #存入csv
-    stock_data.drop(stock_data.index, inplace=True)
-
+    print('getting', stock_symbol, 'data done')
