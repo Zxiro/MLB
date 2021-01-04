@@ -112,6 +112,49 @@ def concat_indust_pe(df, dict_):
     print(df)
     print(dict_)
 
+def concat_pe(df):
+    dirPath = r"./pe_data"
+    result = [f for f in sorted(os.listdir(dirPath)) if os.path.isfile(os.path.join(dirPath, f))]
+    pe_dict = {}
+    stock_num = '2330'
+    for file_name in result:
+        date = file_name.split('.')[0]
+        ex_filename = file_name.split('.')[1]
+        if(len(date)==8 and date[0]=='2' and ex_filename == "json"):
+            with open(dirPath+ '/' + date +'.json') as f:
+                        pe_day_dict = json.load(f)
+            if stock_num in pe_day_dict.keys():
+                pe_dict[date] = pe_day_dict[stock_num]
+            #print(date)
+    #print(pe_dict)
+    pe = []
+    print(pe_dict.keys())
+    for i in range(len(df.index)-1):
+        date = df.iloc[i]['date']
+        #print(date)
+        yr = date.year
+        m = date.month
+        day = date.day
+        if(m < 10):
+            m = '0' + str(m)
+        if(day<10):
+            day = '0' + str(day)
+        date = str(yr)+str(m)+str(day)
+        #print(date)
+        if date in pe_dict.keys():
+            print(date,pe_dict[date])
+            pe.append(pe_dict[date])
+        else:
+            #print(date)
+            pe.append(0)
+    pe.append(0)
+    #print(pe)
+    df['pe_com'] = pe
+    #print(df[2489:])
+    df = df[~(df == 0.0).any(axis=1)]
+    print(df)
+    #print(dict_)
+
 if '__main__' == __name__:
     stock_num = stock_dic['stock_num']
     span = stock_dic['span']
@@ -132,3 +175,4 @@ if '__main__' == __name__:
     df = pd.DataFrame(stock_data)
     df = df.dropna()
     concat_indust_pe(df, indust_pe[0])
+    concat_pe(df)
