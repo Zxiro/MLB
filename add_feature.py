@@ -11,14 +11,14 @@ class Add_feature:
         #self.add_MACD()
 
     def add_MA(self): #MA 平均價
-        for ma in ['5','10', '20', '30', '60']:
+        for ma in ['5','10','15', '20', '25', '30', '60']:
             self.data["MA"+ ma] = self.data.close.rolling(int(ma)).mean()
 
-    '''def add_MACD(self):
+    def add_MACD(self):
         tmp_df= abstract.MACD(self.data)
         self.data['MACD'] = tmp_df[tmp_df.columns[0]].values.tolist()
         self.data['MACDsignal'] = tmp_df[tmp_df.columns[1]].values.tolist()
-        self.data['MACDhist'] = tmp_df[tmp_df.columns[2]].values.tolist()'''
+        self.data['MACDhist'] = tmp_df[tmp_df.columns[2]].values.tolist()
     
     def add_rsv(self): # rsv (今天收盤-最近9天的最低價)/(最近9天的最高價-最近9天的最低價)
         rsv=[]

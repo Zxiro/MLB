@@ -6,6 +6,7 @@ import pandas as pd
 import json
 from statistics import mean
 from sklearn import preprocessing
+from add_feature import Add_feature
 from build_config import index_dic
 from build_config import stock_dic
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
@@ -13,7 +14,6 @@ os.environ["CUDA_VISIBLE_DEVICES"]=""
 
 def resha(x): #(week, day, features) reshape into (week*day, features) -> (total days, features)
     nptrain = np.array(x)
-    print(nptrain.shape)
     nptrain = np.reshape(nptrain,(nptrain.shape[0] * nptrain.shape[1], nptrain.shape[2]))
     return nptrain
 
@@ -31,22 +31,16 @@ def save_np(x, y, num, span, open_price, close_price):
     stock_name = num
     
     scale = scale.fit(resha(train_x))  #  standard scale, resha(x) = two dim /  (tr + te)
-    '''
-    with open('./csv_data/mean_var.csv', 'w', newline='')as csvfile:
-        writer = csv.writer(csvfile, delimiter = ' ')
-        writer.writerow(['mean', 'deviation'])
-        writer.writerow([stock_dic['date'], stock_dic['end_date'], scale.mean_, scale.var_])
-    '''
     x_test = scale.transform(resha(x_test)) # two dim standardlized
     train_x = scale.transform(resha(train_x))
-    
-    x_test = x_test.reshape((int(x_test.shape[0]/span), span, -1)) # return to three dim
-    train_x  = train_x.reshape((int(train_x.shape[0]/span), span, -1))
-    print(type(x_test))
+    #x_test = x_test.reshape((int(x_test.shape[0]/span), span, -1)) # return to three dim
+    #train_x  = train_x.reshape((int(train_x.shape[0]/span), span, -1))
+
     Npdata = train_x
     x = np.save(os.path.join('./stock_data/trx/', 'train_x_' + stock_name + '.npy'), Npdata)
-    print(x)
+    #print(Npdata)
     print(num ," train_x_: ", Npdata.shape)
+    #exit()
     Npdata = x_test
     np.save(os.path.join('./stock_data/tex/', 'test_x_' + stock_name), Npdata)
     print(" test_x_: ", Npdata.shape)
@@ -77,35 +71,18 @@ def generate_train_in_day(stock_data):
     name = '2330'
     print(stock_data.shape)
     stock_data.drop(['date'], axis = 1, inplace = True)
+    for i in stock_data.columns:
+        stock_data[i] = pd.to_numeric(stock_data[i])
     ordinary = (pd.to_numeric(stock_data['pe_com'])-pd.to_numeric(stock_data['pe_i']))/pd.to_numeric(stock_data['pe_i'])  #原本離區間的距離
-    one_month = (pd.to_numeric(stock_data['pe_com'].shift(-30))- pd.to_numeric(stock_data['pe_i'].shift(-30)))/pd.to_numeric(stock_data['pe_i'].shift(-30))
+    one_month = (pd.to_numeric(stock_data['pe_com'].shift(-10))- pd.to_numeric(stock_data['pe_i'].shift(-10)))/pd.to_numeric(stock_data['pe_i'].shift(-10))
     y = np.where(ordinary >=0,np.where((ordinary - one_month)/abs(one_month)>=0.05,1,0),np.where((one_month - ordinary)/abs(one_month)>=0,1,0)) #公司本益比相較於產業本益比的變動超過5% 
-    train_y = y[:-30]
+    train_y = y[:-10]
     for i in range(len(stock_data)):#everyday
         if i < len(stock_data) and ((i + span) < len(stock_data)):
             train_x.append([stock_data.iloc[i+j].values.tolist() for j in range(span)])
-            #train_y.append([
             i += span
-            Open = stock_data.iloc[i]['open']
-            Close = stock_data.iloc[i]['close']
-            open_price.append(Open)
-            close_price.append(Close)
-            #if Close - Open >0:
-            #    train_y.append(1)
-            #else:
-            #    train_y.append(0)
-            #train_y.append(Close-Open)#the next day's diff
-    #print(ordinary)
-    print(one_month)
-    #print(stock_data['pe_com'])
-    #print(stock_data['pe_i'])
-    #com > i => or > 0 one_month變小為1   否則 or < 0 one_month 變大為1
-    #analyze = 0
-    #if(ordinary >=0):
-    #    analyze = (ordinary - one_month)/abs(one_month)
-    #else:
-    #    analyze = (one_month - ordinary)/abs(one_month)
-    train_x = train_x[:-(30-span)]
+    train_x = train_x[:-(10-span)]
+    #print(train_x)
     print(len(train_y))
     print(len(train_x))
     save_np(train_x, train_y, name, span, open_price, close_price)
@@ -136,8 +113,8 @@ def concat_indust_pe(df, dict_):
     pe.append(0)
     df['pe_i'] = pe
     df = df[~(df == 0.0).any(axis=1)]
-    print(df)
-    print(dict_)
+    #print(df)
+    #print(dict_)
 
 def concat_pe(df):
     dirPath = r"./pe_data"
@@ -155,10 +132,9 @@ def concat_pe(df):
             #print(date)
     #print(pe_dict)
     pe = []
-    print(pe_dict.keys())
+    #print(pe_dict.keys())
     for i in range(len(df.index)-1):
         date = df.iloc[i]['date']
-        #print(date)
         yr = date.year
         m = date.month
         day = date.day
@@ -167,9 +143,8 @@ def concat_pe(df):
         if(day<10):
             day = '0' + str(day)
         date = str(yr)+str(m)+str(day)
-        #print(date)
         if date in pe_dict.keys():
-            print(date,pe_dict[date])
+            #print(date, pe_dict[date])
             pe.append(pe_dict[date])
         else:
             #print(date)
@@ -179,12 +154,13 @@ def concat_pe(df):
     df['pe_com'] = pe
     #print(df[2489:])
     df = df[~(df == 0.0).any(axis=1)]
-    print(df)
+    #print(df)
     return df
     #print(dict_)
 
 if '__main__' == __name__:
     stock_num = stock_dic['stock_num']
+    feature = stock_dic['features']
     span = stock_dic['span']
     close_type = stock_dic['close_type']
     start_date = stock_dic['date']
@@ -193,15 +169,20 @@ if '__main__' == __name__:
     indust = index_dic['indust'] #indust cate
     indust_pe = []
     df_list = []
+
     for ind in indust:
-        print(ind)
+        #print(ind)
         with open('./indust_pe/'+ ind +'.json') as f:
             indust_dict = json.load(f)
         indust_pe.append(indust_dict)
     stock_num = '2330'
     stock_data = load_csv(stock_num, start_date, end_date) #load selected stock's data which is in the set timespan
-    df = pd.DataFrame(stock_data)
+    af = Add_feature(stock_data) #calculate the wanted feature and add on the stock dataframe
+    af.data = filter_feature(af.data, feature) #leave the wanted feature
+    df = af.data
+    #df = pd.DataFrame(stock_data)
     df = df.dropna()
     concat_indust_pe(df, indust_pe[0])
     df = concat_pe(df)
+    print(df)
     generate_train_in_day(df)

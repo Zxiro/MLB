@@ -5,7 +5,7 @@ stock_dic = {
     'date':'2004-02-11', #永豐給lab最早的資料時間
     'end_date':'2020-12-31',
     #'features' :  ['date', 'close', 'open', 'high', 'low', 'volume', 'k','d','rsv','MA5','MA30','MA60', 'MACD', 'MACDsignal', 'MACDhist'],
-    'features' :  ['date', 'close', 'open', 'high', 'low', 'volume', 'k','d','rsv', 'MA5','MA30','MA60'],
+    'features' :  ['date', 'close', 'open', 'high', 'low', 'volume', 'rsv', 'MA5','MA10','MA15','MA20','MA25','MA30'],
     'span': 1,
     'close_type' :'close', #['close','adj_close']
 }
