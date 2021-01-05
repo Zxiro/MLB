@@ -29,18 +29,24 @@ def save_np(x, y, num, span, open_price, close_price):
     open_price = open_price[-90:]
     close_price = close_price[-90:]
     stock_name = num
+    
     scale = scale.fit(resha(train_x))  #  standard scale, resha(x) = two dim /  (tr + te)
+    '''
     with open('./csv_data/mean_var.csv', 'w', newline='')as csvfile:
         writer = csv.writer(csvfile, delimiter = ' ')
         writer.writerow(['mean', 'deviation'])
         writer.writerow([stock_dic['date'], stock_dic['end_date'], scale.mean_, scale.var_])
+    '''
     x_test = scale.transform(resha(x_test)) # two dim standardlized
     train_x = scale.transform(resha(train_x))
+    
     x_test = x_test.reshape((int(x_test.shape[0]/span), span, -1)) # return to three dim
     train_x  = train_x.reshape((int(train_x.shape[0]/span), span, -1))
+    print(type(x_test))
     Npdata = train_x
-    np.save(os.path.join('./stock_data/trx/', 'train_x_' + stock_name), Npdata)
-    # print(num ," train_x_: ", Npdata.shape)
+    x = np.save(os.path.join('./stock_data/trx/', 'train_x_' + stock_name + '.npy'), Npdata)
+    print(x)
+    print(num ," train_x_: ", Npdata.shape)
     Npdata = x_test
     np.save(os.path.join('./stock_data/tex/', 'test_x_' + stock_name), Npdata)
     print(" test_x_: ", Npdata.shape)
@@ -62,42 +68,47 @@ def save_np(x, y, num, span, open_price, close_price):
     #print(num, " closetestx  ", npdata.shape)
     #print(npdata)
 
-def generate_train_in_day(stock):
+def generate_train_in_day(stock_data):
     train_x = []
     train_y = []
     open_price = []
     close_price = []
-    #data.drop(['date'], axis = 1, inplace = True)
-    '''
-    for i in range(len(data)):#everyday
-        if i < len(data) and ((i + span) < len(data)):
-            train_x.append([data.iloc[i+j].values.tolist() for j in range(span)])
+    span = 1
+    name = '2330'
+    print(stock_data.shape)
+    stock_data.drop(['date'], axis = 1, inplace = True)
+    ordinary = (pd.to_numeric(stock_data['pe_com'])-pd.to_numeric(stock_data['pe_i']))/pd.to_numeric(stock_data['pe_i'])  #原本離區間的距離
+    one_month = (pd.to_numeric(stock_data['pe_com'].shift(-30))- pd.to_numeric(stock_data['pe_i'].shift(-30)))/pd.to_numeric(stock_data['pe_i'].shift(-30))
+    y = np.where(ordinary >=0,np.where((ordinary - one_month)/abs(one_month)>=0.05,1,0),np.where((one_month - ordinary)/abs(one_month)>=0,1,0)) #公司本益比相較於產業本益比的變動超過5% 
+    train_y = y[:-30]
+    for i in range(len(stock_data)):#everyday
+        if i < len(stock_data) and ((i + span) < len(stock_data)):
+            train_x.append([stock_data.iloc[i+j].values.tolist() for j in range(span)])
+            #train_y.append([
             i += span
-            Open = data.iloc[i]['open']
-            Close = data.iloc[i]['close']
+            Open = stock_data.iloc[i]['open']
+            Close = stock_data.iloc[i]['close']
             open_price.append(Open)
             close_price.append(Close)
-            if Close - Open >0:
-                train_y.append(1)
-            else:
-                train_y.append(0)
+            #if Close - Open >0:
+            #    train_y.append(1)
+            #else:
+            #    train_y.append(0)
             #train_y.append(Close-Open)#the next day's diff
-    '''
-    ordinary = (pd.to_numeric(stock['pe_com'])-pd.to_numeric(stock['pe_i']))/pd.to_numeric(stock['pe_i'])  #原本離區間的距離
-    one_month = (pd.to_numeric(stock['pe_com'].shift(-30))- pd.to_numeric(stock['pe_i'].shift(-30)))/pd.to_numeric(stock['pe_i'].shift(-30))
-    print(ordinary)
+    #print(ordinary)
     print(one_month)
-    print(stock['pe_com'])
-    print(stock['pe_i'])
+    #print(stock_data['pe_com'])
+    #print(stock_data['pe_i'])
     #com > i => or > 0 one_month變小為1   否則 or < 0 one_month 變大為1
     #analyze = 0
     #if(ordinary >=0):
     #    analyze = (ordinary - one_month)/abs(one_month)
     #else:
     #    analyze = (one_month - ordinary)/abs(one_month)
-    y = np.where(ordinary >=0,np.where((ordinary - one_month)/abs(one_month)>=0.05,1,0),np.where((one_month - ordinary)/abs(one_month)>=0,1,0)) #公司本益比相較於產業本益比的變動超過5%
-    print(y)
-    #save_np(train_x, train_y, name, span, open_price, close_price)
+    train_x = train_x[:-(30-span)]
+    print(len(train_y))
+    print(len(train_x))
+    save_np(train_x, train_y, name, span, open_price, close_price)
 
 def filter_feature(df, feature):
     df = df[df.columns[df.columns.isin(feature)]] #篩選出需要的feature
