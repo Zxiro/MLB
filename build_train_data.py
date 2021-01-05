@@ -89,7 +89,13 @@ def generate_train_in_day(stock):
     print(one_month)
     print(stock['pe_com'])
     print(stock['pe_i'])
-    y = np.where(abs(ordinary)<=0.05,0,np.where(abs(one_month)<=0.05,1,-1)) #原本就在區間內設為0 在區間外如果在一個月後回到區間為1 否則為0
+    #com > i => or > 0 one_month變小為1   否則 or < 0 one_month 變大為1
+    #analyze = 0
+    #if(ordinary >=0):
+    #    analyze = (ordinary - one_month)/abs(one_month)
+    #else:
+    #    analyze = (one_month - ordinary)/abs(one_month)
+    y = np.where(ordinary >=0,np.where((ordinary - one_month)/abs(one_month)>=0.05,1,0),np.where((one_month - ordinary)/abs(one_month)>=0,1,0)) #公司本益比相較於產業本益比的變動超過5%
     print(y)
     #save_np(train_x, train_y, name, span, open_price, close_price)
 
