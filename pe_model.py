@@ -8,14 +8,14 @@ tr_x =np.load('./stock_data/trx/train_x_2330.npy')
 tr_y =np.load('./stock_data/try/train_y_2330.npy') 
 
 model = xgb.XGBClassifier(
-                    max_depth = 4,
+                    booster='gbtree',
+                    max_depth = 3,
                     learning_rate=0.01,
-                    n_estimators= 1400,
+                    n_estimators= 500,
                     objective='binary:logitraw',
-                    early_stopping_rounds=50
                     )
 eval_set = [(te_x, te_y)]
-model.fit(tr_x, tr_y, eval_set=eval_set, verbose=True, eval_metric="logloss")
+model.fit(tr_x, tr_y, eval_set = eval_set, verbose=True, eval_metric="error", early_stopping_rounds=1000)
 
 y_pred = model.predict(te_x)
 print(y_pred)

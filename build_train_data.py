@@ -120,7 +120,7 @@ def concat_pe(df):
     dirPath = r"./pe_data"
     result = [f for f in sorted(os.listdir(dirPath)) if os.path.isfile(os.path.join(dirPath, f))]
     pe_dict = {}
-    stock_num = '2330'
+    stock_num = '2303'
     for file_name in result:
         date = file_name.split('.')[0]
         ex_filename = file_name.split('.')[1]
@@ -145,7 +145,10 @@ def concat_pe(df):
         date = str(yr)+str(m)+str(day)
         if date in pe_dict.keys():
             #print(date, pe_dict[date])
-            pe.append(pe_dict[date])
+            if(pe_dict[date]=='-'):
+                pe.append(0)
+            else:
+                pe.append(pe_dict[date])
         else:
             #print(date)
             pe.append(0)
@@ -184,5 +187,19 @@ if '__main__' == __name__:
     df = df.dropna()
     concat_indust_pe(df, indust_pe[0])
     df = concat_pe(df)
+    avg = []
+    for i in range(len(df)):#everyday
+        if i > 9:
+            tmp = 0
+            for j in range(10):
+                if(df.iloc[i-j]['pe_com']=='-'):
+                    tmp+=0
+                else:
+                    tmp += float(df.iloc[i-j]['pe_com'])
+            avg.append(tmp/10)
+        else:
+            avg.append(0)
+    df['pe_avg'] = avg
+    df = df.dropna()
     print(df)
     generate_train_in_day(df)
