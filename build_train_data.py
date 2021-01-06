@@ -111,7 +111,7 @@ def load_csv(num, start, end):
     stock_data['date'] = pd.to_datetime(stock_data['date'])
     return stock_data
 
-def concat_indust_pe(df, dict_):
+def concat_indust_pe(df, dict_, choose):
     pe = []
     for i in range(len(df.index)-1):
         date = df.iloc[i]['date']
@@ -126,7 +126,7 @@ def concat_indust_pe(df, dict_):
         else:
             pe.append(0)
     pe.append(0)
-    df['pe_i'] = pe
+    df[choose+'_i'] = pe
     df = df[~(df == 0.0).any(axis=1)]
     #print(df)
     #print(dict_)
@@ -186,11 +186,6 @@ if '__main__' == __name__:
     indust = index_dic['indust'] #indust cate
     indust_pe = []
     df_list = []
-    for ind in indust:
-        #print(ind)
-        with open('./indust_pe/'+ ind +'.json') as f:
-            indust_dict = json.load(f)
-        indust_pe.append(indust_dict)
     stock_num = sys.argv[1]
     stock_data = load_csv(stock_num, start_date, end_date) #load selected stock's data which is in the set timespan
     af = Add_feature(stock_data) #calculate the wanted feature and add on the stock dataframe
@@ -198,7 +193,15 @@ if '__main__' == __name__:
     df = af.data
     #df = pd.DataFrame(stock_data)
     df = df.dropna()
-    concat_indust_pe(df, indust_pe[0])
+    allratio = ['pe', 'pbr', 'yield']
+    for ratio in allratio:
+        indust_pe = []
+        for ind in indust:
+            #print(ind)
+            with open('./indust_pe/'+ ind + ratio +'.json') as f:
+                indust_dict = json.load(f)
+            indust_pe.append(indust_dict)
+        concat_indust_pe(df, indust_pe[0], ratio)
     df = concat_pe(df, stock_num)
     avg = []
     for i in range(len(df)):#everyday
