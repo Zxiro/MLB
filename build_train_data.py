@@ -1,15 +1,16 @@
 import csv
 import datetime
 import os
-import numpy as np
-import pandas as pd
 import json
 import sys
+import numpy as np
+import pandas as pd
 from statistics import mean
 from sklearn import preprocessing
 from add_feature import Add_feature
 from build_config import index_dic
 from build_config import stock_dic
+from sklearn.model_selection import train_test_split
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]=""
 
@@ -36,6 +37,19 @@ def save_np(x, y, num, span, open_price, close_price):
     train_x = scale.transform(resha(train_x))
     #x_test = x_test.reshape((int(x_test.shape[0]/span), span, -1)) # return to three dim
     #train_x  = train_x.reshape((int(train_x.shape[0]/span), span, -1))
+    train_x, x_val, train_y, y_val = train_test_split(train_x, train_y, test_size=0.2)
+
+    Npdata = x_val
+    x = np.save(os.path.join('./stock_data/vax/', 'val_x_' + stock_name + '.npy'), Npdata)
+    #print(Npdata)
+    print(num ," val_x_: ", Npdata.shape)
+
+    Npdata = y_val
+    x = np.save(os.path.join('./stock_data/vay/', 'val_y_' + stock_name + '.npy'), Npdata)
+    #print(Npdata)
+    print(num ," val_y_: ", Npdata.shape)
+
+
 
     Npdata = train_x
     x = np.save(os.path.join('./stock_data/trx/', 'train_x_' + stock_name + '.npy'), Npdata)

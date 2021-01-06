@@ -5,5 +5,14 @@ import sys
 
 company = ['1301','1303','1304','1305','1307','1308','1309','1310','1312','1313','1314','1315','1321','1323','1324','1325','1326','1337','1340','1341','4306']
 
+
 for stock_num in company:
     os.system("python3 build_train_data.py "+str(stock_num))
+
+for stock_num in company:
+    os.system("python3 pe_model.py "+str(stock_num))
+
+exit()
+
+
+
