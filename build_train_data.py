@@ -4,6 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 import json
+import sys
 from statistics import mean
 from sklearn import preprocessing
 from add_feature import Add_feature
@@ -62,17 +63,17 @@ def save_np(x, y, num, span, open_price, close_price):
     #print(num, " closetestx  ", npdata.shape)
     #print(npdata)
 
-def generate_train_in_day(stock_data):
+def generate_train_in_day(stock_data, stock_num):
     train_x = []
     train_y = []
     open_price = []
     close_price = []
     span = 1
-    name = '2330'
+    name = stock_num
     print(stock_data.shape)
     stock_data.drop(['date'], axis = 1, inplace = True)
-    for i in stock_data.columns:
-        stock_data[i] = pd.to_numeric(stock_data[i])
+    #for i in stock_data.columns:
+    #    stock_data[i] = pd.to_numeric(stock_data[i])
     ordinary = (pd.to_numeric(stock_data['pe_com'])-pd.to_numeric(stock_data['pe_i']))/pd.to_numeric(stock_data['pe_i'])  #原本離區間的距離
     one_month = (pd.to_numeric(stock_data['pe_com'].shift(-10))- pd.to_numeric(stock_data['pe_i'].shift(-10)))/pd.to_numeric(stock_data['pe_i'].shift(-10))
     y = np.where(ordinary >=0,np.where((ordinary - one_month)/abs(one_month)>=0.05,1,0),np.where((one_month - ordinary)/abs(one_month)>=0,1,0)) #公司本益比相較於產業本益比的變動超過5% 
@@ -85,7 +86,7 @@ def generate_train_in_day(stock_data):
     #print(train_x)
     print(len(train_y))
     print(len(train_x))
-    save_np(train_x, train_y, name, span, open_price, close_price)
+    save_np(train_x, train_y, stock_num, span, open_price, close_price)
 
 def filter_feature(df, feature):
     df = df[df.columns[df.columns.isin(feature)]] #篩選出需要的feature
@@ -116,11 +117,10 @@ def concat_indust_pe(df, dict_):
     #print(df)
     #print(dict_)
 
-def concat_pe(df):
+def concat_pe(df, stock_num):
     dirPath = r"./pe_data"
     result = [f for f in sorted(os.listdir(dirPath)) if os.path.isfile(os.path.join(dirPath, f))]
     pe_dict = {}
-    stock_num = '2303'
     for file_name in result:
         date = file_name.split('.')[0]
         ex_filename = file_name.split('.')[1]
@@ -172,13 +172,12 @@ if '__main__' == __name__:
     indust = index_dic['indust'] #indust cate
     indust_pe = []
     df_list = []
-
     for ind in indust:
         #print(ind)
         with open('./indust_pe/'+ ind +'.json') as f:
             indust_dict = json.load(f)
         indust_pe.append(indust_dict)
-    stock_num = '2330'
+    stock_num = sys.argv[1]
     stock_data = load_csv(stock_num, start_date, end_date) #load selected stock's data which is in the set timespan
     af = Add_feature(stock_data) #calculate the wanted feature and add on the stock dataframe
     af.data = filter_feature(af.data, feature) #leave the wanted feature
@@ -186,7 +185,7 @@ if '__main__' == __name__:
     #df = pd.DataFrame(stock_data)
     df = df.dropna()
     concat_indust_pe(df, indust_pe[0])
-    df = concat_pe(df)
+    df = concat_pe(df, stock_num)
     avg = []
     for i in range(len(df)):#everyday
         if i > 9:
@@ -202,4 +201,4 @@ if '__main__' == __name__:
     df['pe_avg'] = avg
     df = df.dropna()
     print(df)
-    generate_train_in_day(df)
+    generate_train_in_day(df,stock_num)

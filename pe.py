@@ -12,6 +12,9 @@ def crawl_pe(date):
     link="https://www.twse.com.tw/exchangeReport/BWIBBU_d?response=html&date="+datetime +"&selectType=ALL"
     r = rq.get(link)
     soup = BeautifulSoup(r.text, "lxml")
+    a_tags = soup.find('tbody')
+    if(a_tags == None):
+        return a_tags
     a = soup.find('tr').find_next_siblings()
     t = a[0].find_all('td')
     pe_pos = 0
@@ -22,7 +25,7 @@ def crawl_pe(date):
     a_tags = soup.find('tbody')
 
     if(a_tags == None):
-        return a_tags 
+        return a_tags
 
     a_tags = a_tags.find_all('tr')
     pe = {}
@@ -31,20 +34,20 @@ def crawl_pe(date):
         print(t)
         pe[t[0].text] = t[pe_pos].text
     print(pe)
-    exit()
+    #exit()
 
     if not os.path.exists('./pe_data/'):
         print("x")
         os.makedirs('./pe_data/')
-    #json.dump(pe, open(f'./pe_data/{datetime}.json', 'w'), indent=4)
+    json.dump(pe, open(f'./pe_data/{datetime}.json', 'w'), indent=4)
 
 
 y=2020
 m=12
 d=25
-n_days = 3000
+n_days = 2000
 date = datetime.datetime.now()
-date = datetime.date(2014, 7, 17)
+date = datetime.date(2012, 10, 22)
 fail_count = 0
 allow_continuous_fail_count = 5
 data = {}
