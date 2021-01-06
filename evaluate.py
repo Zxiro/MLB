@@ -15,9 +15,10 @@ class Stock():
         self.buy_price = buy
         self.sell_price = sell
         self.act = 0 #0 for hold, 1 for sell
-indust_list = ['1301']
+#indust_list = ['1301']
 
-
+total_gain = 0
+total_port_size = 0
 for i in range(0, 10): #0-10
     if i != 0:
         gain = 0
@@ -26,10 +27,12 @@ for i in range(0, 10): #0-10
             sell_stock = []
             for key in port.keys():
                 if(port[key].act == 1):
-                    print(sell)
+                    #print(sell)
                     sell_stock.append(key)
                     gain += float((port[key].sell_price) - float(port[key].buy_price))/ float(port[key].buy_price)
             tot_gain = gain / (port_size)
+            total_gain += gain
+            total_port_size += port_size
             print('Period ', i+1, ' gain is ', tot_gain, '%')
             for k in sell_stock:
                 port.pop(k)
@@ -42,30 +45,39 @@ for i in range(0, 10): #0-10
             print('size', port_size)
             tot_gain = gain / (port_size)
             print('Holding gain is ', tot_gain, '%')
+        print(total_gain/9)
+        print(total_port_size)
         exit()
     for stock in indust_list:
+        if not os.path.isfile('./xg_model/'+stock+'.model'):
+            continue
         model.load_model('./xg_model/'+stock+'.model')#load model
         te_x = np.load('./stock_data/tex/test_x_'+stock+'.npy') 
         te_y = np.load('./stock_data/tey/test_y_'+stock+'.npy')
         open_price = np.load('./stock_data/trx/open_x_'+stock+'.npy')
         close_price = np.load('./stock_data/trx/close_x_'+stock+'.npy')
+        low_val = np.load('./stock_data/low_val/low_val_x_'+stock+'.npy')
         y_pred = model.predict(te_x)
         pred = y_pred[i * 10] #Get 10 days later's answer
+        #print(te_x[i*10][13])
+        #print(te_x[i*10][16])
         if(pred == 1):
             if stock in port.keys():
                 continue
+            elif(low_val[i*10]>0):
+                continue
             else:
                 print(i)
+                print(stock)
                 s = Stock(stock, open_price[i], 'None')
                 port[stock] = s
         if(pred == 0):
             if stock in port.keys():
-                print(sell)
+                #print(sell)
                 port[stock].sell_price = close_price[i]
                 port[stock].act = 1 #Sell
             else:
                 continue
-            
     '''
         <建立以及改變port>
         for 個股 in 產業:
