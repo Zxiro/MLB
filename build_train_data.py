@@ -10,6 +10,7 @@ from sklearn import preprocessing
 from add_feature import Add_feature
 from build_config import index_dic
 from build_config import stock_dic
+from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]=""
@@ -35,8 +36,8 @@ def save_np(x, y, num, span, open_price, close_price, ordinary):
     scale = scale.fit(resha(train_x))  #  standard scale, resha(x) = two dim /  (tr + te)
     x_test = scale.transform(resha(x_test)) # two dim standardlized
     train_x = scale.transform(resha(train_x))
-    #x_test = x_test.reshape((int(x_test.shape[0]/span), span, -1)) # return to three dim
-    #train_x  = train_x.reshape((int(train_x.shape[0]/span), span, -1))
+    #pca = PCA(n_components=3)
+    #transformed = pdpca.transform(x_test)
     train_x, x_val, train_y, y_val = train_test_split(train_x, train_y, test_size=0.2)
 
     Npdata = ordinary
@@ -54,13 +55,11 @@ def save_np(x, y, num, span, open_price, close_price, ordinary):
     #print(Npdata)
     print(num ," val_y_: ", Npdata.shape)
 
-
-
     Npdata = train_x
     x = np.save(os.path.join('./stock_data/trx/', 'train_x_' + stock_name + '.npy'), Npdata)
     #print(Npdata)
     print(num ," train_x_: ", Npdata.shape)
-    #exit()
+
     Npdata = x_test
     np.save(os.path.join('./stock_data/tex/', 'test_x_' + stock_name), Npdata)
     print(" test_x_: ", Npdata.shape)
@@ -75,11 +74,11 @@ def save_np(x, y, num, span, open_price, close_price, ordinary):
     #print(Npdata)
     npdata = np.array(open_price)
     np.save(os.path.join('./stock_data/trx/', 'open_x_' + stock_name), npdata)
-    #print(num, " opentestx  ", npdata.shape)
+    print(num, " opentestx  ", npdata.shape)
     #print(npdata)
     npdata = np.array(close_price)
     np.save(os.path.join('./stock_data/trx/', 'close_x_' + stock_name), npdata)
-    #print(num, " closetestx  ", npdata.shape)
+    print(num, " closetestx  ", npdata.shape)
     #print(npdata)
 
 def generate_train_in_day(stock_data, stock_num):
@@ -195,7 +194,8 @@ if '__main__' == __name__:
     indust = index_dic['indust'] #indust cate
     indust_pe = []
     df_list = []
-    stock_num = sys.argv[1]
+    #stock_num = sys.argv[1]
+    stock_num = '1301'
     stock_data = load_csv(stock_num, start_date, end_date) #load selected stock's data which is in the set timespan
     af = Add_feature(stock_data) #calculate the wanted feature and add on the stock dataframe
     af.data = filter_feature(af.data, feature) #leave the wanted feature

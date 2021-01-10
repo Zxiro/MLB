@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import pandas as pd
 import xgboost as xgb
 from build_config import indust_dic
 from sklearn.metrics import accuracy_score
@@ -19,6 +20,7 @@ class Stock():
 
 total_gain = 0
 total_port_size = 0
+final_gain = {}
 for i in range(0, 10): #0-10
     if i != 0:
         gain = 0
@@ -34,19 +36,26 @@ for i in range(0, 10): #0-10
             total_gain += gain
             total_port_size += port_size
             print('Period ', i+1, ' gain is ', tot_gain, '%')
+            final_gain['P'+ str(i+1)] = tot_gain*100
             for k in sell_stock:
                 port.pop(k)
     if i == 9:
         if(port_size != 0):
             for key in port.keys():
+                close_price = np.load('./stock_data/trx/close_x_'+port[key].code+'.npy')
                 print('key', key)
-                gain += (close_price[-1]- float(port[key].buy_price)) / float(port[key].buy_price)
+                print('hold', close_price[-1])
+                print('cost', float(port[key].buy_price))
+                gain += (float(close_price[-1])- float(port[key].buy_price)) / float(port[key].buy_price)
                 print('gain', gain)
             print('size', port_size)
             tot_gain = gain / (port_size)
             print('Holding gain is ', tot_gain, '%')
-        print(total_gain/9)
-        print(total_port_size)
+            final_gain['Holding'+str(i+1)] = tot_gain*100
+        final_gain['Avg'] = (tot_gain/9)*100
+        df = pd.DataFrame(list(final_gain.items()),
+                    columns=['Type', 'Return in %'])
+        print(df)
         exit()
     for stock in indust_list:
         if not os.path.isfile('./xg_model/'+stock+'.model'):
@@ -59,21 +68,19 @@ for i in range(0, 10): #0-10
         low_val = np.load('./stock_data/low_val/low_val_x_'+stock+'.npy')
         y_pred = model.predict(te_x)
         pred = y_pred[i * 10] #Get 10 days later's answer
-        #print(te_x[i*10][13])
-        #print(te_x[i*10][16])
         if(pred == 1):
             if stock in port.keys():
-                continue
+                continue #Holding
             elif(low_val[i*10]>0):
                 continue
             else:
-                print(i)
+                print('Round: ', i+1, 'Willing to put ' +stock+'in ')
                 print(stock)
                 s = Stock(stock, open_price[i], 'None')
                 port[stock] = s
         if(pred == 0):
             if stock in port.keys():
-                #print(sell)
+                print('Round: ', i+1, 'Need to sell ' +stock)
                 port[stock].sell_price = close_price[i]
                 port[stock].act = 1 #Sell
             else:
